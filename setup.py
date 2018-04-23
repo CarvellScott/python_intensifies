@@ -5,7 +5,7 @@ setup(
     version='0.0.0',
     author="Carvell Scott",
     author_email="carvell.scott@gmail.com",
-    keywords=['intensify intensifies shaking']
+    keywords=['intensify intensifies shaking'],
     packages=['python_intensifies'],
     url="https://github.com/CarvellScott/",
     install_requires=[
@@ -18,7 +18,7 @@ setup(
         'License :: MIT License',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.5'
-    ]
+    ],
     description="A tool for INTENSIFYING images.",
     long_description=open('README.md').read(),
     entry_points={
