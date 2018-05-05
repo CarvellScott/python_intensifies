@@ -1,13 +1,11 @@
 #!/usr/bin/env python
+import os
 import argparse
 import random
 import sys
 import numpy as np
 import moviepy.editor as mpy
 from PIL import Image, ImageDraw
-
-def lerp(a, b, t):
-    return (1 - t) * a + t * b
 
 
 def get_crop_frame(image, max_wiggle, tx, ty):
@@ -40,27 +38,36 @@ class ImageShaker:
 
 
 def main():
+    # Use the most recently added file to the directory as a default input.
+    files = [f for f in os.listdir() if os.path.isfile(f)]
+    files_and_times = zip(files, map(lambda i: os.path.getmtime(i), files))
+    most_recent_file = max(files_and_times, key=lambda i: i[1])[0]
+    default_output_file = os.path.splitext(most_recent_file)[0] + "-intensifies.gif"
+
+    # Use those defaults to minimize number of required arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument("-i", "--image", type=argparse.FileType("rb"), required=True, help="The image to be INTENSIFIED")
-    parser.add_argument("-o", "--output", type=str, required=True, help="The filename to which the output should be saved")
+    parser.add_argument("-i", "--image", type=argparse.FileType("rb"), default=most_recent_file, help="The image to be INTENSIFIED. Will default to {}".format(most_recent_file))
+    parser.add_argument("-o", "--output", type=str, default=default_output_file, help="The filename to which the output should be saved. Must end in \".gif\"")
     parser.add_argument("-s", "--max_side_length", type=int, required=False, default=0, help="Ensures the output has dimensions no bigger than this value.")
     parser.add_argument("-w", "--wiggle_level", type=float, required=False, default=.1875, help="Amount of shaking on a scale of 0 to 1.")
     args = parser.parse_args()
 
-    testpic = Image.open(args.image)
-    
-    testpic_width, testpic_height = testpic.size
-    max_side_length = max(testpic_width, testpic_height)
+    input_pic = Image.open(args.image)
+
+    # First shrink the pic to requested size
+    input_pic_width, input_pic_height = input_pic.size
+    max_side_length = max(input_pic_width, input_pic_height)
     wiggle_level = args.wiggle_level
     desired_max_side_length = args.max_side_length
     if max_side_length > desired_max_side_length and desired_max_side_length > 0:
         visible_percentage_of_image = (1 - wiggle_level / 2)
         scale_factor = desired_max_side_length / (visible_percentage_of_image * max_side_length)
-        scaled_size = (int(scale_factor * testpic_width), int(scale_factor * testpic_height))
-        testpic = testpic.resize(scaled_size, Image.BILINEAR)
+        scaled_size = (int(scale_factor * input_pic_width), int(scale_factor * input_pic_height))
+        input_pic = input_pic.resize(scaled_size, Image.BILINEAR)
 
+    # SHAKE VIGOROUSLY
     shaker = ImageShaker()
-    shaker.img = testpic
+    shaker.img = input_pic
     shaker.max_wiggle = wiggle_level 
     duration = 1
     clip = mpy.VideoClip(shaker.make_frame, duration=duration)

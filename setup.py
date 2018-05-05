@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='python_intensifies',
-    version='0.0.0',
+    version='0.0.1',
     author="Carvell Scott",
     author_email="carvell.scott@gmail.com",
     keywords=['intensify intensifies shaking'],
