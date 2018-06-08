@@ -29,7 +29,8 @@ So far the script has been tested on Python3.5 running in the Windows Subsystem 
                             value.
       -w WIGGLE_LEVEL, --wiggle_level WIGGLE_LEVEL
                             Amount of shaking on a scale of 0 to 1.
-
+      -f FPS, --fps FPS
+                            Frame rate of the output in FPS
 
     $ intensify -i python.jpg -w .25 -o danger_noodle.gif
 
