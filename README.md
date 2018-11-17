@@ -17,11 +17,12 @@ Pretty much Python3.5+ and pillow. The setup.py should install it for you.
     $ intensify -h
 
 	usage: intensify [-h] [-i IMAGE] [-o OUTPUT] [-s MAX_LENGTH] [-w WIGGLE_LEVEL]
+					 [-f FPS]
 
 	optional arguments:
 	  -h, --help            show this help message and exit
 	  -i IMAGE, --image IMAGE
-							The image to be INTENSIFIED. Defaults to README.md
+							The image to be INTENSIFIED. Defaults to setup.py
 	  -o OUTPUT, --output OUTPUT
 							The filename to which the output should be saved. Must
 							end in ".gif"
@@ -30,11 +31,15 @@ Pretty much Python3.5+ and pillow. The setup.py should install it for you.
 							value.
 	  -w WIGGLE_LEVEL, --wiggle_level WIGGLE_LEVEL
 							Amount of shaking on a scale of 0 to 1.
+	  -f FPS, --fps FPS     Frame rate of the output in frames per second. Max is
+							50.
 
     $ intensify -i python.jpg -w .25 -o danger_noodle.gif
 
 
 ## Changelog
+    0.0.2 - 0.0.3:
+        * Re-added the FPS parameter I forgot to document removing. Initially it was because Pillow is limited in framerates it can animate, but turns out it's very useful for reducing filesize of emojis.
     0.0.1 - 0.0.2:
         * Transparency AND animation is now supported for .gif files used as input.
         * MoviePy, (and by extension, imageio, tqdm, and a copy of ffmpeg) are no longer dependencies.

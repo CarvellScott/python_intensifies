@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='python_intensifies',
-    version='0.0.2',
+    version='0.0.3',
     author="Carvell Scott",
     author_email="carvell.scott@gmail.com",
     keywords=['intensify intensifies shaking memes'],

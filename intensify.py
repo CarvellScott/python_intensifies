@@ -70,10 +70,19 @@ def main():
         default=.1875,
         help="Amount of shaking on a scale of 0 to 1."
     )
+    parser.add_argument(
+        "-f",
+        "--fps",
+        type=int,
+        required=False,
+        default=50,
+        help="Frame rate of the output in frames per second. Max is 50."
+    )
     args = parser.parse_args()
 
     input_pic = Image.open(args.image)
     wiggle_level = args.wiggle_level
+    fps = max(1, min(50, args.fps))
     print("Intensifying image, please wait...")
 
     # SHAKE VIGOROUSLY
@@ -84,7 +93,7 @@ def main():
     if len(frames) > 1:
         frames = [_shake_frame(im, wiggle_level) for im in frames]
     else:
-        frames = [_shake_frame(frames[0], wiggle_level) for i in range(25)]
+        frames = [_shake_frame(frames[0], wiggle_level) for i in range(fps)]
 
     # Shrink the pic to requested size
     input_pic_width, input_pic_height = input_pic.size
@@ -106,7 +115,7 @@ def main():
         args.output,
         save_all=True,
         append_images=frames[1:],
-        duration=20,
+        duration=(1000 // fps),
         loop=0,
         disposal=3
     )
