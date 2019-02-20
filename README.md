@@ -6,11 +6,11 @@ A command-line tool for INTENSIFYING images. That is, it opens a file and SHAKES
 
 ## Requirements
 
-Pretty much Python3.5+ and pillow. The setup.py should install it for you.
+Pretty much Python3.5+ and Pillow>=5.4.1. The setup.py should install it for you.
 
 ## Installation
 
-    $ pip install .
+    $ pip install python-intensifies
 
 ## Usage:
     
@@ -38,6 +38,8 @@ Pretty much Python3.5+ and pillow. The setup.py should install it for you.
 
 
 ## Changelog
+    0.0.3 - 0.0.4:
+        * If you're reading this, you can now install this via pypi.
     0.0.2 - 0.0.3:
         * Re-added the FPS parameter I forgot to document removing. Initially it was because Pillow is limited in framerates it can animate, but turns out it's very useful for reducing filesize of emojis.
     0.0.1 - 0.0.2:
