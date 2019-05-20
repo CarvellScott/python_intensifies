@@ -2,7 +2,6 @@
 import argparse
 import pathlib
 import random
-import sys
 from PIL import Image, ImageSequence
 
 
@@ -31,21 +30,9 @@ def _shake_frame(img, max_wiggle):
     return cropped
 
 
-def most_recent_file():
-    filepaths = [f for f in pathlib.Path().iterdir() if f.is_file()]
-    most_recent = max(filepaths, key=lambda i: i.stat().st_mtime)
-    return most_recent
-
-
-def intensify(parsed_args):
-    image_fp = parsed_args.image
-    wiggle_level = parsed_args.wiggle_level
-    fps = parsed_args.fps
-    desired_length = parsed_args.max_length
-
+def _intensify(image_fp, desired_length, wiggle_level, fps):
     input_pic = Image.open(image_fp)
     fps = max(1, min(50, fps))
-    print("Intensifying image, please wait...")
 
     # SHAKE VIGOROUSLY
     # ...I really want to shake ImageSequence.Iterator vigorously for how it
@@ -84,24 +71,35 @@ def intensify(parsed_args):
         loop=0,
         disposal=3
     )
-    print("Output written to {}".format(output_filename))
+    return output_filename
+
+
+def intensify(parsed_args):
+    image_fp = parsed_args.image
+    desired_length = parsed_args.size
+    wiggle_level = parsed_args.wiggle_level
+    fps = parsed_args.fps
+
+    for image_fp in parsed_args.image:
+        input_filename = image_fp.name
+        print("Intensifying {}, please wait...".format(input_filename))
+        output_filename = _intensify(
+            image_fp, desired_length, wiggle_level, fps
+        )
+        print("Output written to {}".format(output_filename))
 
 
 def main():
-    # Use the most recently modified file as a default input.
-    mr_file = most_recent_file()
-
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "-i",
-        "--image",
+        "image",
         type=argparse.FileType("rb"),
-        default=mr_file,
-        help="The image to be INTENSIFIED. Defaults to {}".format(mr_file)
+        nargs="+",
+        help="One or more images to be INTENSIFIED."
     )
     parser.add_argument(
         "-s",
-        "--max_length",
+        "--size",
         type=int,
         required=False,
         default=0,
@@ -113,7 +111,11 @@ def main():
         type=float,
         required=False,
         default=.1875,
-        help="Amount of shaking on a scale of 0.0 to 1.0."
+        help=(
+            "Amount of shaking on a scale of 0.0 to 1.0. "
+            "The more wiggle, the more the image will be zoomed in to ensure "
+            "no borders show."
+        )
     )
     parser.add_argument(
         "-f",
