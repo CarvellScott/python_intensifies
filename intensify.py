@@ -1,7 +1,8 @@
 #!/usr/bin/env python
-import os
 import argparse
+import pathlib
 import random
+import sys
 from PIL import Image, ImageSequence
 
 
@@ -30,14 +31,66 @@ def _shake_frame(img, max_wiggle):
     return cropped
 
 
-def main():
-    # Use the most recently added file to the directory as a default input.
-    files = [f for f in os.listdir() if os.path.isfile(f)]
-    files_and_times = zip(files, map(lambda i: os.path.getmtime(i), files))
-    mr_file = max(files_and_times, key=lambda i: i[1])[0]
-    default_output_file = os.path.splitext(mr_file)[0] + "-intensifies.gif"
+def most_recent_file():
+    filepaths = [f for f in pathlib.Path().iterdir() if f.is_file()]
+    most_recent = max(filepaths, key=lambda i: i.stat().st_mtime)
+    return most_recent
 
-    # Use those defaults to minimize number of required arguments
+
+def intensify(parsed_args):
+    image_fp = parsed_args.image
+    wiggle_level = parsed_args.wiggle_level
+    fps = parsed_args.fps
+    desired_length = parsed_args.max_length
+
+    input_pic = Image.open(image_fp)
+    fps = max(1, min(50, fps))
+    print("Intensifying image, please wait...")
+
+    # SHAKE VIGOROUSLY
+    # ...I really want to shake ImageSequence.Iterator vigorously for how it
+    # doesn't get along with lists very well.
+    sequence = ImageSequence.Iterator(input_pic)
+    frames = [im.copy() for im in sequence]
+    if len(frames) > 1:
+        frames = [_shake_frame(im, wiggle_level) for im in frames]
+    else:
+        frames = [_shake_frame(frames[0], wiggle_level) for i in range(fps)]
+
+    # Shrink the pic to requested size
+    input_pic_width, input_pic_height = input_pic.size
+    curr_max_length = max(input_pic_width, input_pic_height)
+    scaled_w = scaled_h = 1
+    if curr_max_length > desired_length and desired_length > 0:
+        scale_factor = desired_length / curr_max_length
+        scaled_w = int(scale_factor * input_pic_width)
+        scaled_h = int(scale_factor * input_pic_height)
+
+    if scaled_w != 1 or scaled_h != 1:
+        scaled_size = (scaled_w, scaled_h)
+        frames = [im.resize(scaled_size, Image.NEAREST) for im in frames]
+
+    # Derive output filename
+    input_filepath = pathlib.Path(image_fp.name)
+    suffix = input_filepath.stem + "-intensifies"
+    output_filename = suffix + ".gif"
+
+    # PIL saves gifs weirdly, but I'll deal with it.
+    frames[0].save(
+        output_filename,
+        save_all=True,
+        append_images=frames[1:],
+        duration=(1000 // fps),
+        loop=0,
+        disposal=3
+    )
+    print("Output written to {}".format(output_filename))
+
+
+def main():
+    # Use the most recently modified file as a default input.
+    mr_file = most_recent_file()
+
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-i",
@@ -45,14 +98,6 @@ def main():
         type=argparse.FileType("rb"),
         default=mr_file,
         help="The image to be INTENSIFIED. Defaults to {}".format(mr_file)
-    )
-    parser.add_argument(
-        "-o",
-        "--output",
-        type=str,
-        default=default_output_file,
-        help=("The filename to which the output should be saved. "
-              "Must end in \".gif\"")
     )
     parser.add_argument(
         "-s",
@@ -68,7 +113,7 @@ def main():
         type=float,
         required=False,
         default=.1875,
-        help="Amount of shaking on a scale of 0 to 1."
+        help="Amount of shaking on a scale of 0.0 to 1.0."
     )
     parser.add_argument(
         "-f",
@@ -79,46 +124,7 @@ def main():
         help="Frame rate of the output in frames per second. Max is 50."
     )
     args = parser.parse_args()
-
-    input_pic = Image.open(args.image)
-    wiggle_level = args.wiggle_level
-    fps = max(1, min(50, args.fps))
-    print("Intensifying image, please wait...")
-
-    # SHAKE VIGOROUSLY
-    # ...I really want to shake ImageSequence.Iterator vigorously for how it
-    # doesn't get along with lists very well.
-    sequence = ImageSequence.Iterator(input_pic)
-    frames = [im.copy() for im in sequence]
-    if len(frames) > 1:
-        frames = [_shake_frame(im, wiggle_level) for im in frames]
-    else:
-        frames = [_shake_frame(frames[0], wiggle_level) for i in range(fps)]
-
-    # Shrink the pic to requested size
-    input_pic_width, input_pic_height = input_pic.size
-    max_length = max(input_pic_width, input_pic_height)
-    desired_length = args.max_length
-    scaled_w = scaled_h = 1
-    if max_length > desired_length and desired_length > 0:
-        visibility = (1 - wiggle_level / 2)
-        scale_factor = desired_length / (visibility * max_length)
-        scaled_w = int(scale_factor * input_pic_width)
-        scaled_h = int(scale_factor * input_pic_height)
-
-    if scaled_w != 1 or scaled_h != 1:
-        scaled_size = (scaled_w, scaled_h)
-        frames = [im.resize(scaled_size, Image.NEAREST) for im in frames]
-
-    # PIL saves gifs weirdly, but I'll deal with it.
-    frames[0].save(
-        args.output,
-        save_all=True,
-        append_images=frames[1:],
-        duration=(1000 // fps),
-        loop=0,
-        disposal=3
-    )
+    intensify(args)
 
 
 if __name__ == "__main__":
