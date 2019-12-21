@@ -103,7 +103,10 @@ def main():
         type=int,
         required=False,
         default=0,
-        help="The output will have dimensions no bigger than this value."
+        help=(
+            "The output image(s) will be scaled down to have dimensions no"
+            "bigger than this value (in pixels)."
+        )
     )
     parser.add_argument(
         "-w",

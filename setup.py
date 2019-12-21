@@ -2,14 +2,14 @@ from setuptools import setup
 
 setup(
     name='python_intensifies',
-    version='0.0.4',
+    version='0.1.0',
     author="Carvell Scott",
     author_email="carvell.scott@gmail.com",
     keywords=['intensify intensifies shaking memes'],
     py_modules=['intensify'],
     url="https://github.com/CarvellScott/",
     install_requires=[
-        "Pillow==5.4.1"
+        "Pillow==6.2.1"
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',
