@@ -20,6 +20,8 @@ The "wiggle level" can be set anywhere between 0.0 to 1.0. The more wiggle, the 
 `$ intensify -w .25 input0.png input1.png input2.png`
 
 ## Changelog
+    0.1.0 - 0.2.0:
+        * Upgraded Pillow to 7.0.0.
     0.0.4 - 0.1.0:
         * Added support for bulk intensification; instead of specifying input via -i, multiple files can be specified at the command line.
 		* Removed the "--output" argument. Every output now follows a convention of "*-intensifies.gif".

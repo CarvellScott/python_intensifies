@@ -30,9 +30,11 @@ def _shake_frame(img, max_wiggle):
     return cropped
 
 
-def _intensify(image_fp, desired_length, wiggle_level, fps):
+def _intensify(image_fp, parsed_args):
+    desired_length = parsed_args.size
+    wiggle_level = parsed_args.wiggle_level
     input_pic = Image.open(image_fp)
-    fps = max(1, min(50, fps))
+    fps = max(1, min(50, parsed_args.fps))
 
     # SHAKE VIGOROUSLY
     # ...I really want to shake ImageSequence.Iterator vigorously for how it
@@ -75,17 +77,10 @@ def _intensify(image_fp, desired_length, wiggle_level, fps):
 
 
 def intensify(parsed_args):
-    image_fp = parsed_args.image
-    desired_length = parsed_args.size
-    wiggle_level = parsed_args.wiggle_level
-    fps = parsed_args.fps
-
     for image_fp in parsed_args.image:
         input_filename = image_fp.name
         print("Intensifying {}, please wait...".format(input_filename))
-        output_filename = _intensify(
-            image_fp, desired_length, wiggle_level, fps
-        )
+        output_filename = _intensify(image_fp, parsed_args)
         print("Output written to {}".format(output_filename))
 
 
