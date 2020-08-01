@@ -20,6 +20,8 @@ The "wiggle level" can be set anywhere between 0.0 to 1.0. The more wiggle, the 
 `$ intensify -w .25 input0.png input1.png input2.png`
 
 ## Changelog
+    0.2.0 - 0.2.1:
+        * Upgraded Pillow to require >= 7.1.0, probably going to update these patch notes on actual changes.
     0.1.0 - 0.2.0:
         * Upgraded Pillow to 7.0.0.
     0.0.4 - 0.1.0:
