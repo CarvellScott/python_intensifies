@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import io
 import argparse
 import pathlib
 import random
@@ -30,11 +31,18 @@ def _shake_frame(img, max_wiggle):
     return cropped
 
 
-def _intensify(image_fp, parsed_args):
-    desired_length = parsed_args.size
-    wiggle_level = parsed_args.wiggle_level
+def _intensify_filename(filename):
+    input_filepath = pathlib.Path(filename)
+    suffix = input_filepath.stem + "-intensifies"
+    output_filename = suffix + ".gif"
+    return output_filename
+
+
+def _intensify(image_fp, desired_length=None, wiggle_level=.1875, fps=50):
+    random.seed("Determinism for the win")
     input_pic = Image.open(image_fp)
-    fps = max(1, min(50, parsed_args.fps))
+    fps = max(1, min(50, fps))
+    wiggle_level = max(0, min(1, wiggle_level))
 
     # SHAKE VIGOROUSLY
     # ...I really want to shake ImageSequence.Iterator vigorously for how it
@@ -59,28 +67,35 @@ def _intensify(image_fp, parsed_args):
         scaled_size = (scaled_w, scaled_h)
         frames = [im.resize(scaled_size, Image.NEAREST) for im in frames]
 
-    # Derive output filename
-    input_filepath = pathlib.Path(image_fp.name)
-    suffix = input_filepath.stem + "-intensifies"
-    output_filename = suffix + ".gif"
-
+    output_fp = io.BytesIO()
     # PIL saves gifs weirdly, but I'll deal with it.
     frames[0].save(
-        output_filename,
+        output_fp,
+        format="gif",
         save_all=True,
         append_images=frames[1:],
         duration=(1000 // fps),
         loop=0,
         disposal=3
     )
-    return output_filename
+    output_fp.seek(0)
+    return output_fp
 
 
 def intensify(parsed_args):
-    for image_fp in parsed_args.image:
+    images = parsed_args.image
+    for i, image_fp in enumerate(parsed_args.image):
         input_filename = image_fp.name
-        print("Intensifying {}, please wait...".format(input_filename))
-        output_filename = _intensify(image_fp, parsed_args)
+        progress_msg_fmt = "Intensifying image {}/{}, please wait..."
+        print(progress_msg_fmt.format(i + 1, len(images)))
+        intensified_fp = _intensify(image_fp,
+                                    desired_length=parsed_args.size,
+                                    wiggle_level=parsed_args.wiggle_level,
+                                    fps=parsed_args.fps)
+
+        output_filename = _intensify_filename(input_filename)
+        with open(output_filename, "wb") as f:
+            f.write(intensified_fp.read())
         print("Output written to {}".format(output_filename))
 
 
