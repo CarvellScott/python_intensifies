@@ -1,8 +1,9 @@
 #!/usr/bin/env python
-import io
 import argparse
+import io
 import pathlib
 import random
+
 from PIL import Image, ImageSequence
 
 
@@ -32,13 +33,31 @@ def _shake_frame(img, max_wiggle):
 
 
 def _intensify_filename(filename):
+    """
+    Derives a filename used to save an intensified image.
+    """
     input_filepath = pathlib.Path(filename)
     suffix = input_filepath.stem + "-intensifies"
     output_filename = suffix + ".gif"
     return output_filename
 
 
-def _intensify(image_fp, desired_length=None, wiggle_level=.1875, fps=50):
+def intensify(image_fp, desired_length=0, wiggle_level=.1875, fps=50):
+    """
+    Reads in an image from the given file-like object and creates an animated
+    gif in which it shakes vigorously.
+
+    Arguments:
+        image_fp (file): This is an open file-like object that holds the image
+        data.
+        desired_length (int): Represents the max length in pixels of the output
+        image
+        wiggle_level (float): A number between 0 and 1 that represents the
+        maximum offset of the image between frames.
+        fps (integer): frames per second of the output image.
+    Returns:
+        An io.BytesIO object containing the new gif, ready to be read.
+    """
     random.seed("Determinism for the win")
     input_pic = Image.open(image_fp)
     fps = max(1, min(50, fps))
@@ -82,24 +101,7 @@ def _intensify(image_fp, desired_length=None, wiggle_level=.1875, fps=50):
     return output_fp
 
 
-def intensify(parsed_args):
-    images = parsed_args.image
-    for i, image_fp in enumerate(parsed_args.image):
-        input_filename = image_fp.name
-        progress_msg_fmt = "Intensifying image {}/{}, please wait..."
-        print(progress_msg_fmt.format(i + 1, len(images)))
-        intensified_fp = _intensify(image_fp,
-                                    desired_length=parsed_args.size,
-                                    wiggle_level=parsed_args.wiggle_level,
-                                    fps=parsed_args.fps)
-
-        output_filename = _intensify_filename(input_filename)
-        with open(output_filename, "wb") as f:
-            f.write(intensified_fp.read())
-        print("Output written to {}".format(output_filename))
-
-
-def main():
+def _get_argument_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "image",
@@ -138,9 +140,27 @@ def main():
         default=50,
         help="Frame rate of the output in frames per second. Max is 50."
     )
-    args = parser.parse_args()
-    intensify(args)
+    return parser
+
+
+def _main():
+    parser = _get_argument_parser()
+    parsed_args = parser.parse_args()
+    images = parsed_args.image
+    for i, image_fp in enumerate(parsed_args.image):
+        input_filename = image_fp.name
+        progress_msg_fmt = "Intensifying image {}/{}, please wait..."
+        print(progress_msg_fmt.format(i + 1, len(images)))
+        intensified_fp = intensify(image_fp,
+                                    desired_length=parsed_args.size,
+                                    wiggle_level=parsed_args.wiggle_level,
+                                    fps=parsed_args.fps)
+
+        output_filename = _intensify_filename(input_filename)
+        with open(output_filename, "wb") as f:
+            f.write(intensified_fp.read())
+        print("Output written to {}".format(output_filename))
 
 
 if __name__ == "__main__":
-    main()
+    _main()
